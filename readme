@@ -1,0 +1,1 @@
+emcc pong.cpp -O2 -s WASM=1 -s "EXPORTED_FUNCTIONS=['_start_game','_set_role','_update_remote_state','_set_remote_paddle','_get_remote_paddle']" -s "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']" -o pong.js

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pong Multiplayer WebAssembly</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #lobby {
+            margin: 20px;
+        }
+
+        #pongCanvas {
+            border: 1px solid #000;
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="lobby">
+        <button id="createRoom">Crea Stanza</button>
+        <button id="joinRoom">Entra in Stanza</button>
+    </div>
+    <canvas id="pongCanvas" width="800" height="600"></canvas>
+
+    <!-- Socket.io verrà servito dal server -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Il modulo WASM (pong.js e pong.wasm) verrà generato compilando pong.cpp con Emscripten -->
+    <script src="pong.js"></script>
+    <!-- Script per la lobby e la comunicazione WebRTC -->
+    <script src="app.js"></script>
+</body>
+
+</html>

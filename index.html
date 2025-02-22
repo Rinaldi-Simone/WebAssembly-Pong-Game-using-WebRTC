@@ -1,39 +1,70 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Pong Multiplayer WebAssembly</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        #lobby {
-            margin: 20px;
-        }
-
-        #pongCanvas {
-            border: 1px solid #000;
-            display: none;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Pong Multiplayer</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #f0f0f0; 
+      margin: 0; 
+      padding: 0;
+    }
+    #header { 
+      background: #333; 
+      color: #fff; 
+      padding: 10px; 
+      text-align: center; 
+    }
+    #lobby { 
+      padding: 20px; 
+      text-align: center; 
+    }
+    #roomControls button { 
+      padding: 10px 20px; 
+      margin: 5px; 
+      font-size: 16px; 
+    }
+    #controls { margin-top: 20px; }
+    #pongCanvas { 
+      border: 2px solid #333; 
+      display: none; 
+      margin: 20px auto; 
+      background: #fff; 
+      display: block;
+    }
+    #log { 
+      max-width: 800px; 
+      margin: 10px auto; 
+      padding: 10px; 
+      background: #fff; 
+      border: 1px solid #ccc; 
+      height: 100px; 
+      overflow-y: auto; 
+    }
+    #status { font-size: 18px; margin-top: 10px; }
+  </style>
 </head>
-
 <body>
-    <div id="lobby">
-        <button id="createRoom">Crea Stanza</button>
-        <button id="joinRoom">Entra in Stanza</button>
+  <div id="header">
+    <h1>Pong Multiplayer</h1>
+  </div>
+  <div id="lobby">
+    <div id="roomControls">
+      <button id="createRoom">Crea Stanza</button>
+      <button id="joinRoom">Entra in Stanza</button>
     </div>
-    <canvas id="pongCanvas" width="800" height="600"></canvas>
-
-    <!-- Socket.io verrà servito dal server -->
-    <script src="/socket.io/socket.io.js"></script>
-    <!-- Il modulo WASM (pong.js e pong.wasm) verrà generato compilando pong.cpp con Emscripten -->
-    <script src="pong.js"></script>
-    <!-- Script per la lobby e la comunicazione WebRTC -->
-    <script src="app.js"></script>
+    <div id="status"></div>
+    <div id="controls"></div>
+  </div>
+  <canvas id="pongCanvas" width="800" height="600"></canvas>
+  <div id="log"></div>
+  
+  <!-- Socket.io verrà servito dal server -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Il modulo WASM (pong.js e pong.wasm) verrà generato compilando pong.cpp con Emscripten -->
+  <script src="pong.js"></script>
+  <!-- Script per la gestione della lobby, del signaling WebRTC e dei log -->
+  <script src="app.js"></script>
 </body>
-
 </html>

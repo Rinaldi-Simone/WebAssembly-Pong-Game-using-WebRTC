@@ -76,15 +76,13 @@ void drawGame() {
 // Funzione per annunciare il vincitore e fermare il gioco
 void checkGameOver() {
     if (scoreLeft >= MAX_SCORE || scoreRight >= MAX_SCORE) {
-        std::string winner = (scoreLeft >= MAX_SCORE) ? "Giocatore Sinistro" : "Giocatore Destro";
+        std::string winner = (scoreLeft >= MAX_SCORE) ? "Hai vinto!" : "Hai perso!";
+        // Mostra l'overlay chiamando la funzione JS showWinner
         EM_ASM({
-            if (typeof updateStatus === 'function') {
-                updateStatus(UTF8ToString($0));
+            if (typeof showWinner === 'function') {
+                showWinner(UTF8ToString($0));
             }
-            if (typeof showNewGameButton === 'function') {
-                showNewGameButton();
-            }
-        }, ("Vittoria: " + winner + "!").c_str());
+        }, ("Vittoria: " + winner).c_str());
         if (isHost) {
             emscripten_cancel_main_loop();
         }
@@ -121,6 +119,7 @@ void update() {
     drawGame();
     checkGameOver();
     
+    // Invia lo stato di gioco al client tramite la funzione JS sendGameState
     EM_ASM_({
         if (typeof sendGameState === 'function') {
             sendGameState($0, $1, $2, $3, $4, $5);
@@ -128,8 +127,7 @@ void update() {
     }, ballX, ballY, leftPaddleY, rightPaddleY, scoreLeft, scoreRight);
 }
 
-
-// Aggiornamento dello stato remoto (client)
+// Funzione esportata per il client: aggiorna lo stato ricevuto dal host e ridisegna
 extern "C" EMSCRIPTEN_KEEPALIVE
 void update_remote_state(int bx, int by, int lp, int rp, int sl, int sr) {
     ballX = bx;
@@ -141,7 +139,7 @@ void update_remote_state(int bx, int by, int lp, int rp, int sl, int sr) {
     drawGame();
 }
 
-// Aggiorna la posizione della racchetta remota
+// Aggiorna la posizione della racchetta remota (usata dal host per applicare l'input ricevuto dal client)
 extern "C" EMSCRIPTEN_KEEPALIVE
 void set_remote_paddle(int y) {
     rightPaddleY = y;
@@ -187,7 +185,7 @@ void set_role(int role) {
     isHost = (role == 1);
 }
 
-// Funzione esportata per avviare il gioco (chiamata da app.js)
+// Funzione esportata per avviare il gioco, chiamata da app.js
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void start_game() {

@@ -1,84 +1,74 @@
 const socket = io();
-
 let role = null; // "host" o "client"
 let roomId = null;
 let peerConnection = null;
 let dataChannel = null;
 let gameStarted = false;
 
-// Configurazione STUN per WebRTC
-const config = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" }
-  ]
-};
+// Riferimenti agli elementi delle varie schermate
+const homeScreen = document.getElementById('homeScreen');
+const roomListScreen = document.getElementById('roomListScreen');
+const lobbyScreen = document.getElementById('lobbyScreen');
+const gameScreen = document.getElementById('gameScreen');
+const roomListUl = document.getElementById('roomList');
+const lobbyStatus = document.getElementById('lobbyStatus');
+const lobbyControls = document.getElementById('lobbyControls');
+const logDiv = document.getElementById('log');
+const winnerOverlay = document.getElementById('winnerOverlay');
+const winnerMessage = document.getElementById('winnerMessage');
 
-// Helper per aggiungere log
+// Helper: aggiunge un messaggio al log
 function addLog(message) {
-  const logDiv = document.getElementById('log');
   const p = document.createElement('p');
   p.textContent = message;
   logDiv.appendChild(p);
   logDiv.scrollTop = logDiv.scrollHeight;
+  console.log(message);
 }
 
-// Aggiorna lo stato
+// Aggiorna lo stato nella lobby o nelle altre sezioni
 function updateStatus(message) {
-  document.getElementById('status').textContent = message;
+  if (lobbyScreen.style.display === "block") {
+    lobbyStatus.textContent = message;
+  }
 }
 
-// Definisci sendGameState globalmente (verifica che sia definita PRIMA di start_game)
-window.sendGameState = function(ballX, ballY, leftPaddleY, rightPaddleY, scoreLeft, scoreRight) {
-  if (role === "host" && dataChannel && dataChannel.readyState === "open") {
-    const state = {
-      type: "gameState",
-      ballX: ballX,
-      ballY: ballY,
-      leftPaddleY: leftPaddleY,
-      rightPaddleY: rightPaddleY,
-      scoreLeft: scoreLeft,
-      scoreRight: scoreRight
-    };
-    // Log del messaggio inviato
-    addLog("Invio stato di gioco: " + JSON.stringify(state));
-    dataChannel.send(JSON.stringify(state));
-  }
-};
+// Funzione per mostrare una schermata e nascondere le altre
+function showScreen(screen) {
+  homeScreen.style.display = "none";
+  roomListScreen.style.display = "none";
+  lobbyScreen.style.display = "none";
+  gameScreen.style.display = "none";
+  screen.style.display = "block";
+}
 
-// Gestione della lobby
-document.getElementById('createRoom').addEventListener('click', () => {
+// --- Gestione della navigazione delle schermate ---
+// Home Screen
+document.getElementById('btnCreateRoom').addEventListener('click', () => {
   roomId = prompt("Inserisci un ID per la stanza:");
   if (roomId) {
     socket.emit('create_room', roomId);
     addLog("Stanza creata: " + roomId);
+    showScreen(lobbyScreen);
+    updateStatus("Attesa dell'altro giocatore...");
   }
 });
 
-document.getElementById('joinRoom').addEventListener('click', () => {
-  roomId = prompt("Inserisci l'ID della stanza:");
-  if (roomId) {
-    socket.emit('join_room', roomId);
-    addLog("Richiesta per entrare nella stanza: " + roomId);
-  }
+document.getElementById('btnJoinRoom').addEventListener('click', () => {
+  socket.emit('list_rooms');
+  showScreen(roomListScreen);
 });
 
-// Quando il server conferma l'ingresso nella stanza
-socket.on('room_joined', (room) => {
-  addLog("Sei entrato nella stanza: " + room);
-  updateStatus("In attesa degli altri giocatori...");
-  socket.emit('get_room_players', room);
+document.getElementById('btnRefreshRooms').addEventListener('click', () => {
+  socket.emit('list_rooms');
 });
 
-// Il server invia l'elenco dei giocatori: il primo diventa host
-socket.on('room_players', (players) => {
-  if (players[0] === socket.id) {
-    role = "host";
-    addLog("Sei l'host della stanza.");
-  } else {
-    role = "client";
-    addLog("Sei il client della stanza.");
-  }
-  // Mostra il pulsante "Pronto"
+document.getElementById('btnBackHomeFromRooms').addEventListener('click', () => {
+  showScreen(homeScreen);
+});
+
+// Lobby: mostra il pulsante "Pronto"
+function showReadyButton() {
   if (!document.getElementById('readyButton')) {
     const btn = document.createElement('button');
     btn.id = 'readyButton';
@@ -89,18 +79,71 @@ socket.on('room_players', (players) => {
       addLog("Hai premuto 'Pronto'. In attesa dell'altro giocatore...");
       btn.disabled = true;
     });
-    document.getElementById('controls').appendChild(btn);
+    lobbyControls.appendChild(btn);
+  }
+}
+
+// In Game Screen: pulsante per tornare alla lobby (per semplicità ricarica la pagina)
+document.getElementById('btnBackToLobby').addEventListener('click', () => {
+  location.reload();
+});
+
+// Overlay: gestione dei pulsanti di ripartenza o ritorno al menu
+document.getElementById('btnRestartGame').addEventListener('click', () => {
+  location.reload();
+});
+document.getElementById('btnReturnHome').addEventListener('click', () => {
+  location.reload();
+});
+
+// --- Socket.io events ---
+// Quando il server conferma l'ingresso in una stanza
+socket.on('room_joined', (room) => {
+  addLog("Sei entrato nella stanza: " + room);
+  roomId = room;
+  showScreen(lobbyScreen);
+  updateStatus("Attesa degli altri giocatori...");
+  socket.emit('get_room_players', room);
+});
+
+// Ricezione dell'elenco dei giocatori in stanza
+socket.on('room_players', (players) => {
+  if (players[0] === socket.id) {
+    role = "host";
+    addLog("Sei l'host della stanza.");
+  } else {
+    role = "client";
+    addLog("Sei il client della stanza.");
+  }
+  showReadyButton();
+});
+
+// Evento "room_list": il server restituisce le stanze disponibili (con 1 solo giocatore)
+socket.on('room_list', (rooms) => {
+  roomListUl.innerHTML = "";
+  if (rooms.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = "Nessuna stanza disponibile";
+    roomListUl.appendChild(li);
+  } else {
+    rooms.forEach(r => {
+      const li = document.createElement('li');
+      li.textContent = r;
+      li.addEventListener('click', () => {
+        socket.emit('join_room', r);
+        addLog("Richiesta per entrare nella stanza: " + r);
+      });
+      roomListUl.appendChild(li);
+    });
   }
 });
 
 // Notifica se un giocatore lascia la stanza
 socket.on('player_left', (msg) => {
   addLog("Notifica: " + msg);
-  updateStatus("Un giocatore ha lasciato la stanza. In attesa di un nuovo giocatore...");
+  updateStatus("Un giocatore ha lasciato la stanza. Attesa di un nuovo giocatore...");
   const readyBtn = document.getElementById('readyButton');
   if (readyBtn) readyBtn.disabled = false;
-  const newGameBtn = document.getElementById('newGameButton');
-  if (newGameBtn) newGameBtn.remove();
 });
 
 // Se il client diventa nuovo host
@@ -110,17 +153,32 @@ socket.on('new_host', () => {
   Module.ccall('set_role', null, ['number'], [1]);
 });
 
-// Quando entrambi sono pronti, il server invia 'start_game'
+// Quando entrambi i giocatori sono pronti, il server invia 'start_game'
 socket.on('start_game', () => {
   addLog("Entrambi i giocatori sono pronti. Inizio partita...");
   updateStatus("Gioco in corso...");
-  gameStarted = true;
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('pongCanvas').style.display = 'block';
+  showScreen(gameScreen);
   startWebRTC();
 });
 
-// --- SIGNALING WebRTC tramite Socket.io ---
+window.sendGameState = function(ballX, ballY, leftPaddleY, rightPaddleY, scoreLeft, scoreRight) {
+    if (dataChannel && dataChannel.readyState === "open") {
+      const state = {
+        type: "gameState",
+        ballX: ballX,
+        ballY: ballY,
+        leftPaddleY: leftPaddleY,
+        rightPaddleY: rightPaddleY,
+        scoreLeft: scoreLeft,
+        scoreRight: scoreRight
+      };
+      addLog("Invio stato di gioco: " + JSON.stringify(state));
+      dataChannel.send(JSON.stringify(state));
+    }
+  };
+  
+
+// --- WebRTC signaling tramite Socket.io ---
 socket.on('webrtc_offer', async (offer) => {
   if (role === "client") {
     addLog("Ricevuto webrtc_offer.");
@@ -148,7 +206,9 @@ socket.on('webrtc_ice_candidate', async (candidate) => {
   }
 });
 
-// --- Creazione della connessione WebRTC e del data channel ---
+// --- Creazione della connessione WebRTC e data channel ---
+const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+
 async function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
   
@@ -179,12 +239,13 @@ function setupDataChannel() {
       Module.ccall('set_role', null, ['number'], [1]);
     } else {
       Module.ccall('set_role', null, ['number'], [0]);
+      // Definisci la funzione per inviare l'input della racchetta
       window.sendPaddleInput = function(direction) {
         const msg = JSON.stringify({ type: "paddle", direction: direction });
         dataChannel.send(msg);
       };
     }
-    // Avvia il gioco WASM
+    // Avvia il gioco (la funzione start_game è esportata dal modulo WASM)
     Module.ccall('start_game', null, [], []);
   };
 
@@ -197,7 +258,6 @@ function setupDataChannel() {
           ['number', 'number', 'number', 'number', 'number', 'number'],
           [data.ballX, data.ballY, data.leftPaddleY, data.rightPaddleY, data.scoreLeft, data.scoreRight]);
       } else if (data.type === "paddle") {
-        // Se host, applica l'input remoto
         const current = Module.ccall('get_remote_paddle', 'number', [], []);
         let newY = current;
         if (data.direction === "up") {
@@ -219,17 +279,10 @@ async function startWebRTC() {
   await createPeerConnection();
 }
 
-// Mostra il pulsante "Nuova Partita"
-function showNewGameButton() {
-  const controlsDiv = document.getElementById('controls');
-  let newGameBtn = document.getElementById('newGameButton');
-  if (!newGameBtn) {
-    newGameBtn = document.createElement('button');
-    newGameBtn.id = 'newGameButton';
-    newGameBtn.textContent = "Nuova Partita";
-    newGameBtn.addEventListener('click', () => {
-      location.reload();
-    });
-    controlsDiv.appendChild(newGameBtn);
-  }
-}
+// Definisci una funzione globale per mostrare l'overlay con il messaggio di fine partita
+window.showWinner = function(message) {
+  winnerMessage.textContent = message;
+  winnerOverlay.style.display = "flex";
+};
+
+

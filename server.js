@@ -40,6 +40,17 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Evento per richiedere l'elenco delle stanze con un solo giocatore
+  socket.on('list_rooms', () => {
+    const availableRooms = [];
+    for (const room in rooms) {
+      if (rooms[room].players.length === 1) {
+        availableRooms.push(room);
+      }
+    }
+    socket.emit('room_list', availableRooms);
+  });
+
   socket.on('ready', (roomId) => {
     socket.ready = true;
     const players = rooms[roomId].players;
@@ -86,7 +97,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Ascolta su tutte le interfacce per l'accesso locale
 server.listen(3000, '0.0.0.0', () => {
   console.log("Server in ascolto sulla porta 3000");
 });

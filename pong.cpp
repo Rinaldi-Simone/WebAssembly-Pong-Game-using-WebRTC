@@ -154,21 +154,21 @@ int get_remote_paddle() {
 // Callback per la gestione degli input da tastiera
 EM_BOOL key_callback(int eventType, const EmscriptenKeyboardEvent *e, void *userData) {
     if (isHost) {
-        if (strcmp(e->key, "ArrowUp") == 0) {
+        if (strcmp(e->key, "w") == 0) {
             leftPaddleY -= 20;
             if (leftPaddleY < 0) leftPaddleY = 0;
-        } else if (strcmp(e->key, "ArrowDown") == 0) {
+        } else if (strcmp(e->key, "s") == 0) {
             leftPaddleY += 20;
             if (leftPaddleY + PADDLE_HEIGHT > HEIGHT) leftPaddleY = HEIGHT - PADDLE_HEIGHT;
         }
     } else {
-        if (strcmp(e->key, "ArrowUp") == 0) {
+        if (strcmp(e->key, "w") == 0) {
             EM_ASM({
                 if (typeof sendPaddleInput === 'function') {
                     sendPaddleInput('up');
                 }
             });
-        } else if (strcmp(e->key, "ArrowDown") == 0) {
+        } else if (strcmp(e->key, "s") == 0) {
             EM_ASM({
                 if (typeof sendPaddleInput === 'function') {
                     sendPaddleInput('down');

@@ -183,6 +183,16 @@ window.sendGameState = function(
   }
 };
 
+// Aggiungi questa funzione in app.js
+window.sendGameOver = function(message) {
+  if (dataChannel && dataChannel.readyState === 'open') {
+      const gameOverData = {
+          type: 'gameOver',
+          message: message
+      };
+      dataChannel.send(JSON.stringify(gameOverData));
+  }
+};
 
 // --- WebRTC signaling tramite Socket.io ---
 
@@ -287,33 +297,38 @@ function setupDataChannel() {
     Module.ccall('start_game', null, [], []);
   };
 
-  dataChannel.onmessage = (event) => {
-    addLog('Messaggio ricevuto: ' + event.data);
-    try {
+// Modifica la funzione dataChannel.onmessage in setupDataChannel()
+dataChannel.onmessage = (event) => {
+  addLog('Messaggio ricevuto: ' + event.data);
+  try {
       const data = JSON.parse(event.data);
       if (data.type === 'gameState') {
-        Module.ccall(
-            'update_remote_state', null,
-            ['number', 'number', 'number', 'number', 'number', 'number'], [
-              data.ballX, data.ballY, data.leftPaddleY, data.rightPaddleY,
-              data.scoreLeft, data.scoreRight
-            ]);
+          Module.ccall(
+              'update_remote_state', null,
+              ['number', 'number', 'number', 'number', 'number', 'number'], [
+                  data.ballX, data.ballY, data.leftPaddleY, data.rightPaddleY,
+                  data.scoreLeft, data.scoreRight
+              ]);
       } else if (data.type === 'paddle') {
-        const current = Module.ccall('get_remote_paddle', 'number', [], []);
-        let newY = current;
-        if (data.direction === 'up') {
-          newY = current - 20;
-        } else if (data.direction === 'down') {
-          newY = current + 20;
-        }
-        if (newY < 0) newY = 0;
-        if (newY + 100 > 600) newY = 600 - 100;
-        Module.ccall('set_remote_paddle', null, ['number'], [newY]);
+          const current = Module.ccall('get_remote_paddle', 'number', [], []);
+          let newY = current;
+          if (data.direction === 'up') {
+              newY = current - 20;
+          } else if (data.direction === 'down') {
+              newY = current + 20;
+          }
+          if (newY < 0) newY = 0;
+          if (newY + 100 > 600) newY = 600 - 100;
+          Module.ccall('set_remote_paddle', null, ['number'], [newY]);
+      } 
+      // Aggiungi questa sezione per gestire il tipo 'gameOver'
+      else if (data.type === 'gameOver') {
+          window.showWinner(data.message);
       }
-    } catch (e) {
+  } catch (e) {
       console.error('Errore nel parsing del messaggio:', e);
-    }
-  };
+  }
+};
 }
 
 // Aggiungi funzione di cleanup

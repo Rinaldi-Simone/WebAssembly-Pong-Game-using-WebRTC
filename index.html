@@ -3,101 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Pong Multiplayer</title>
-  <style>
-    /* Stili di base e per le varie schermate */
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      margin: 0;
-      padding: 0;
-    }
-    #header {
-      background: #333;
-      color: #fff;
-      padding: 10px;
-      text-align: center;
-    }
-    .screen {
-      display: none;
-      padding: 20px;
-      text-align: center;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
-    }
-    #roomList {
-      margin: 20px auto;
-      max-width: 400px;
-      text-align: left;
-      list-style: none;
-      padding: 0;
-    }
-    #roomList li {
-      background: #fff;
-      padding: 10px;
-      margin: 5px 0;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-    #pongCanvas {
-      border: 2px solid #333;
-      background: #fff;
-      margin: 20px auto;
-      display: block;
-    }
-    #log {
-      max-width: 800px;
-      margin: 10px auto;
-      padding: 10px;
-      background: #fff;
-      border: 1px solid #ccc;
-      height: 100px;
-      overflow-y: auto;
-      text-align: left;
-    }
-    #lobbyStatus, #status {
-      font-size: 18px;
-      margin: 10px;
-    }
-    /* Overlay per il messaggio di fine partita */
-    #winnerOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      font-size: 36px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      z-index: 1000;
-    }
-    #winnerOverlay button {
-      margin-top: 20px;
-      font-size: 24px;
-    }
-  </style>
 </head>
 <body>
   <div id="header">
     <h1>Pong Multiplayer</h1>
   </div>
   
-  <!-- Schermata Home -->
+  <!-- Schermate originali invariate -->
   <div id="homeScreen" class="screen" style="display: block;">
     <h2>Benvenuto in Pong Multiplayer</h2>
     <button id="btnCreateRoom">Crea Stanza</button>
     <button id="btnJoinRoom">Unisciti a una Stanza</button>
   </div>
   
-  <!-- Schermata per la lista delle stanze (per join) -->
   <div id="roomListScreen" class="screen">
     <h2>Stanze Disponibili</h2>
     <ul id="roomList"></ul>
@@ -105,22 +23,28 @@
     <button id="btnBackHomeFromRooms">Torna al Menu Principale</button>
   </div>
   
-  <!-- Schermata Lobby -->
   <div id="lobbyScreen" class="screen">
     <h2>Lobby</h2>
     <div id="lobbyStatus"></div>
     <div id="lobbyControls"></div>
   </div>
   
-  <!-- Schermata Gioco -->
+  <!-- Schermata di gioco aggiornata con webcam -->
   <div id="gameScreen" class="screen">
-    <canvas id="pongCanvas" width="800" height="600"></canvas>
+    <div class="game-container">
+      <div class="webcam-container">
+        <video id="localVideo" class="webcam-video" autoplay muted playsinline></video>
+      </div>
+      <canvas id="pongCanvas" width="800" height="600"></canvas>
+      <div class="webcam-container">
+        <video id="remoteVideo" class="webcam-video" autoplay playsinline></video>
+      </div>
+    </div>
     <div id="gameControls">
       <button id="btnBackToLobby">Torna alla Lobby</button>
     </div>
   </div>
   
-  <!-- Overlay per mostrare il vincitore -->
   <div id="winnerOverlay">
     <div id="winnerMessage"></div>
     <button id="btnRestartGame">Nuova Partita</button>
@@ -129,9 +53,132 @@
   
   <div id="log"></div>
   
-  <!-- Includiamo Socket.io, il modulo WASM (pong.js/pong.wasm) e lo script client -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="pong.js"></script>
   <script src="app.js"></script>
 </body>
+
+<style>
+  /* Stili originali invariati */
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    padding: 0;
+  }
+  #header {
+    background: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+  }
+  .screen {
+    display: none;
+    padding: 20px;
+    text-align: center;
+    max-width: 1400px; /* Aumentato per accomodare le webcam più larghe */
+    margin: 0 auto;
+  }
+  button {
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+button:hover {
+  background-color: #45a049;
+}
+  #roomList {
+    margin: 20px auto;
+    max-width: 400px;
+    text-align: left;
+    list-style: none;
+    padding: 0;
+  }
+  #roomList li {
+    background: #fff;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  /* Layout aggiornato del gioco con webcam più stilizzate */
+  .game-container {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centrato per maggiore coerenza */
+    width: 100%;
+    margin: 20px auto;
+  }
+
+  .webcam-container {
+  width: 300px; /* Quadrate, quindi stessa larghezza e altezza */
+  height: 300px;
+  background: #333;
+  border: 2px solid #666;
+  border-radius: 10px; /* Bordo arrotondato */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Ombra per farle risaltare */
+  margin: 0 15px; /* Distanza tra le webcam */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.webcam-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px; /* Bordo arrotondato per i video */
+}
+
+
+  #pongCanvas {
+    border: 2px solid #333;
+    background: #fff;
+    margin: 0 20px;
+    border-radius: 10px; /* Bordo arrotondato per il canvas */
+  }
+
+  /* Altri stili invariati */
+  #log {
+    max-width: 800px;
+    margin: 10px auto;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    height: 100px;
+    overflow-y: auto;
+    text-align: left;
+  }
+  #lobbyStatus, #status {
+    font-size: 18px;
+    margin: 10px;
+  }
+  #winnerOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 36px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 1000;
+  }
+  #winnerOverlay button {
+    margin-top: 20px;
+    font-size: 24px;
+  }
+</style>
+
 </html>

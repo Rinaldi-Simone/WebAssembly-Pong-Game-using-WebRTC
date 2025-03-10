@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Multiplayer</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div id="header">
+    <h1>Pong Multiplayer</h1>
+  </div>
+  
+  <!-- Schermate originali invariate -->
+  <div id="homeScreen" class="screen" style="display: block;">
+    <h2>Benvenuto in Pong Multiplayer</h2>
+    <button id="btnCreateRoom">Crea Stanza</button>
+    <button id="btnJoinRoom">Unisciti a una Stanza</button>
+  </div>
+  
+  <div id="roomListScreen" class="screen">
+    <h2>Stanze Disponibili</h2>
+    <ul id="roomList"></ul>
+    <button id="btnRefreshRooms">Aggiorna Stanze</button>
+    <button id="btnBackHomeFromRooms">Torna al Menu Principale</button>
+  </div>
+  
+  <div id="lobbyScreen" class="screen">
+    <h2>Lobby</h2>
+    <div id="lobbyStatus"></div>
+    <div id="lobbyControls"></div>
+  </div>
+  
+  <!-- Schermata di gioco aggiornata con webcam -->
+  <div id="gameScreen" class="screen">
+    <div class="game-container">
+      <div class="webcam-container">
+        <video id="localVideo" class="webcam-video" autoplay muted playsinline></video>
+      </div>
+      <canvas id="pongCanvas" width="800" height="600"></canvas>
+      <div class="webcam-container">
+        <video id="remoteVideo" class="webcam-video" autoplay playsinline></video>
+      </div>
+    </div>
+    <div id="gameControls">
+      <button id="btnBackToLobby">Torna alla Lobby</button>
+    </div>
+  </div>
+  
+  <div id="winnerOverlay">
+    <div id="winnerMessage"></div>
+    <button id="btnRestartGame">Nuova Partita</button>
+    <button id="btnReturnHome">Torna al Menu</button>
+  </div>
+  
+  <div id="log"></div>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="pong.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

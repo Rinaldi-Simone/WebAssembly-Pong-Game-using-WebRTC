@@ -1,6 +1,6 @@
 // webrtc.js - Logica WebRTC e data channel
 
-import {addLog} from './ui';
+import {addLog} from './ui.js';
 
 // Configurazione WebRTC
 const config = {
@@ -124,7 +124,7 @@ class WebRTCManager {
     await this.peerConnection.setRemoteDescription(
         new RTCSessionDescription(answer));
   }
-  async addICECandidate(candidate) {
+  async addIceCandidate(candidate) {
     try {
       await this.peerConnection.addIceCandidate(candidate);
       addLog('Candidate ICE aggiunto.');

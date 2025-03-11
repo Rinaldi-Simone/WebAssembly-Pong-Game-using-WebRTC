@@ -1,6 +1,6 @@
 // socket-handler.js - Gestione eventi socket.io
 
-import {addLog, elements, showReadyButton, showScreen, updateStatus} from './ui';
+import {addLog, elements, showReadyButton, showScreen, updateStatus} from './ui.js';
 
 // Inizializza gli handler degli eventi socket.io
 function initSocketHandlers(socket, gameState, callbacks) {

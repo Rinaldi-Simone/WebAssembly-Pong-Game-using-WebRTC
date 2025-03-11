@@ -56,5 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initSocketHandlers(socket, gameState, socketCallbacks);
 
   // Mostra la schermata iniziale
-  showScreen(document.getElementById('homeScreen'));
+  const homeScreen = document.getElementById('homeScreen');
+  showScreen(homeScreen);
 });

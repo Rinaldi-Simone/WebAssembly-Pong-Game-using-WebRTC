@@ -1,13 +1,14 @@
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
 // Serviamo i file statici dalla cartella corrente
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '../src')));
 
 const rooms = {};
 

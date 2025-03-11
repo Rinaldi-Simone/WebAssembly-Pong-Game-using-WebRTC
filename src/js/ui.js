@@ -31,13 +31,16 @@ function updateStatus(message) {
 }
 
 // Funzione per mostrare una schermata e nascondere le altre
+// Funzione per mostrare una schermata e nascondere le altre
 function showScreen(screen) {
   elements.homeScreen.style.display = 'none';
   elements.roomListScreen.style.display = 'none';
   elements.lobbyScreen.style.display = 'none';
   elements.gameScreen.style.display = 'none';
-  elements.screen.style.display = 'block';
+  
+  screen.style.display = 'block';  // Usa il parametro screen direttamente
 }
+
 
 // Mostra l'overlay con il messaggio di fine partita
 function showWinner(message) {
@@ -46,7 +49,7 @@ function showWinner(message) {
 }
 
 // Lobby: mostra il pulsante "Pronto"
-function showReadyButton() {
+function showReadyButton(socket, roomId) {
   if (!document.getElementById('readyButton')) {
     const btn = document.createElement('button');
     btn.id = 'readyButton';
@@ -61,9 +64,10 @@ function showReadyButton() {
   }
 }
 
+
 // --- Gestione della navigazione delle schermate ---
 // Inizializza gli event listener per i pulsanti dell'UI
-function initUIEventListner(socket, callbacks) {
+function initUIEventListeners(socket, callbacks) {
   // Home Screen
   document.getElementById('btnCreateRoom').addEventListener('click', () => {
     const roomId = prompt('Inserisci un ID per la stanza:');
@@ -114,5 +118,5 @@ export {
   showScreen,
   showWinner,
   showReadyButton,
-  initUIEventListner,
+  initUIEventListeners,
 }

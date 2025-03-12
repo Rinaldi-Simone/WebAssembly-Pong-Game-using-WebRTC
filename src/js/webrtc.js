@@ -94,11 +94,14 @@ class WebRTCManager {
         } else if (data.type === 'paddle') {
           const current = Module.ccall('get_remote_paddle', 'number', [], []);
           let newY = current;
+          const PADDLE_SPEED = 7; // Usa la stessa velocità definita in C++
+          
           if (data.direction === 'up') {
-            newY = current - 20;
+            newY = current - PADDLE_SPEED;
           } else if (data.direction === 'down') {
-            newY = current + 20;
+            newY = current + PADDLE_SPEED;
           }
+          
           if (newY < 0) newY = 0;
           if (newY + 100 > 600) newY = 600 - 100;
           Module.ccall('set_remote_paddle', null, ['number'], [newY]);
@@ -146,7 +149,6 @@ class WebRTCManager {
         scoreLeft: scoreLeft,
         scoreRight: scoreRight
       };
-      addLog('Invio stato di gioco: ' + JSON.stringify(state));
       this.dataChannel.send(JSON.stringify(state));
     }
   }

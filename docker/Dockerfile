@@ -1,5 +1,5 @@
-# Usa l'ultima versione stabile di Node.js compatibile con Raspberry Pi
-FROM node:20
+# Usa l'ultima versione stabile di Node.js
+FROM node:21
 
 # Imposta la cartella di lavoro dentro il container
 WORKDIR /app
@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 RUN npm install --production
 
 # Copia il codice del server
-COPY server/ ./server/
+COPY server/ src/ ./server/
 
 # Imposta la directory di lavoro per il server
 WORKDIR /app/server

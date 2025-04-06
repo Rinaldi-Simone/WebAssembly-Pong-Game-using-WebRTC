@@ -1,6 +1,6 @@
 services:
   node_server:
-    build: .
+    build: ..
     container_name: node_server
     restart: always
     ports:

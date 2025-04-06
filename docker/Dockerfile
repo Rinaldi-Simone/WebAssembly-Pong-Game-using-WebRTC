@@ -6,13 +6,16 @@ WORKDIR /app
 
 # Copia i file del package.json e installa le dipendenze
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev
+RUN npm install --production
 
-# Copia tutto il codice sorgente
-COPY . .
+# Copia il codice del server
+COPY server/ ./server/
 
-# Esponi la porta 443 per HTTPS
-EXPOSE 443
+# Imposta la directory di lavoro per il server
+WORKDIR /app/server
+
+# Esponi le porte necessarie
+EXPOSE 443 3000
 
 # Comando per avviare il server
 CMD ["node", "server.js"]

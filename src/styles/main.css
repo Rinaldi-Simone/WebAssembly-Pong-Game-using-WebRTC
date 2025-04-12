@@ -115,3 +115,7 @@ button:hover {
   margin-top: 20px;
   font-size: 24px;
 }
+
+#btnRestartGame {
+  display: none !important;
+}

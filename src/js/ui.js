@@ -37,7 +37,7 @@ function showScreen(screen) {
   elements.roomListScreen.style.display = 'none';
   elements.lobbyScreen.style.display = 'none';
   elements.gameScreen.style.display = 'none';
-  
+
   screen.style.display = 'block';  // Usa il parametro screen direttamente
 }
 

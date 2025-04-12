@@ -36,6 +36,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const socketCallbacks = {
     onStartGame: async () => {
       gameState.gameStarted = true;
+      // Posiziona le webcam in base al ruolo
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+      const gameContainer = document.querySelector('.game-container');
+
+      // Rimuove i video esistenti
+      const videos = document.querySelectorAll('.webcam-container');
+      videos.forEach(v => gameContainer.removeChild(v));
+
+      // Ricrea in ordine corretto
+      if (gameState.role === 'host') {
+        // Host a sinistra
+        const left = document.createElement('div');
+        left.className = 'webcam-container';
+        left.appendChild(localVideo);
+        const right = document.createElement('div');
+        right.className = 'webcam-container';
+        right.appendChild(remoteVideo);
+        gameContainer.prepend(left);
+        gameContainer.appendChild(right);
+      } else {
+        // Client a destra
+        const left = document.createElement('div');
+        left.className = 'webcam-container';
+        left.appendChild(remoteVideo);
+        const right = document.createElement('div');
+        right.className = 'webcam-container';
+        right.appendChild(localVideo);
+        gameContainer.prepend(left);
+        gameContainer.appendChild(right);
+      }
+
       await webRTCManager.createPeerConnection();
     },
     onWebRTCOffer: async (offer) => {

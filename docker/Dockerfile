@@ -1,5 +1,5 @@
 # Usa l'ultima versione stabile di Node.js
-FROM node:21
+FROM node:23-slim
 
 # Imposta la cartella di lavoro dentro il container
 WORKDIR /app
